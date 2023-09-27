@@ -12,10 +12,11 @@ import qualified Data.Vector          as V
 import qualified Data.Map             as M
 import GHC.Generics
 import Data.Csv
-import Options.Applicative
 import Text.Email.Validate
 import Data.Maybe (fromMaybe)
 import Data.String (fromString)
+import Options.Applicative (execParser)
+import CmdArgs
 
 data Student where
   Student :: {uid :: BS.ByteString, grade :: Float} -> Student
@@ -85,40 +86,6 @@ buildGradeBook (V.uncons -> Just (r, rs)) m proj =
 
 findProjectName :: String -> Header -> Maybe BS.ByteString
 findProjectName proj = V.find (BS.isPrefixOf $ fromString proj)
-
-data AppOutput = StdOut | OutputFile !FilePath
-  deriving (Show)
-
-data CmdArgs = CmdArgs {
-  projectName      :: !String,      {- required -}
-  templatePath     :: !FilePath,    {- required -}
-  outputPath       :: !AppOutput }
-  deriving (Show)
-
-parseArgs :: Options.Applicative.Parser CmdArgs
-parseArgs = CmdArgs
-      <$> strArgument
-          (metavar "PROJECT"
-            <> help "Name of the Autograder project")
-      <*> strArgument
-          (metavar "TEMPLATE_PATH"
-            <> help "Path to the Canvas gradebook template file")
-      <*> option (OutputFile <$> str)
-          (long "output"
-         <> short 'o'
-         <> metavar "OUTPUT_PATH"
-         <> help "Path to the output file"
-         <> value StdOut)
-
-opts :: ParserInfo CmdArgs
-opts = info (parseArgs <**> helper)
-  (fullDesc
-    <> Options.Applicative.progDesc
-    "Takes a Autograder project name and path to a Canvas gradebook template. \
-       \The Autograder export CSV file should be named 'PROJECT.csv'. \
-       \Outputs to 'OUTPUT_PATH' if given and stdout otherwise"
-    <> Options.Applicative.header
-    "Autograter - generate Canvas gradebook from Autograder export")
 
 main :: IO()
 main =
