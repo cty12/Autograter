@@ -37,6 +37,7 @@ opts = info (parseArgs <**> helper)
     <> Options.Applicative.progDesc
     "Takes a Autograder project name and path to a Canvas gradebook template. \
        \The Autograder export CSV file should be named 'PROJECT.csv'. \
+       \Export of mutation testing, if exists as a separate file, should be named 'PROJECT_TEST.csv' \
        \Outputs to 'OUTPUT_PATH' if given and stdout otherwise"
     <> Options.Applicative.header
     "Autograter - generate Canvas gradebook from Autograder export")
