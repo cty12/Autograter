@@ -12,8 +12,10 @@ import qualified Data.Vector          as V
 import qualified Data.Map             as M
 import GHC.Generics
 import Data.Csv
+import Options.Applicative
 import Text.Email.Validate
 import Data.Maybe (fromMaybe)
+import Data.String (fromString)
 
 data Student where
   Student :: {uid :: BS.ByteString, grade :: Float} -> Student
@@ -81,19 +83,58 @@ buildGradeBook (V.uncons -> Just (r, rs)) m proj =
   where
   buildEntry rcd s pr = rcd { pts = fromMaybe 0 (M.lookup s m), project = pr }
 
-findProjectName :: Header -> Maybe BS.ByteString
-findProjectName = V.find (BS.isPrefixOf "Project 1: Flood It!")
+findProjectName :: String -> Header -> Maybe BS.ByteString
+findProjectName proj = V.find (BS.isPrefixOf $ fromString proj)
+
+data AppOutput = StdOut | OutputFile !FilePath
+  deriving (Show)
+
+data CmdArgs = CmdArgs {
+  projectName      :: !String,      {- required -}
+  templatePath     :: !FilePath,    {- required -}
+  outputPath       :: !AppOutput }
+  deriving (Show)
+
+parseArgs :: Options.Applicative.Parser CmdArgs
+parseArgs = CmdArgs
+      <$> strArgument
+          (metavar "PROJECT"
+            <> help "Name of the Autograder project")
+      <*> strArgument
+          (metavar "TEMPLATE_PATH"
+            <> help "Path to the Canvas gradebook template file")
+      <*> option (OutputFile <$> str)
+          (long "output"
+         <> short 'o'
+         <> metavar "OUTPUT_PATH"
+         <> help "Path to the output file"
+         <> value StdOut)
+
+opts :: ParserInfo CmdArgs
+opts = info (parseArgs <**> helper)
+  (fullDesc
+    <> Options.Applicative.progDesc
+    "Takes a Autograder project name and path to a Canvas gradebook template. \
+       \The Autograder export CSV file should be named 'PROJECT.csv'. \
+       \Outputs to 'OUTPUT_PATH' if given and stdout otherwise"
+    <> Options.Applicative.header
+    "Autograter - generate Canvas gradebook from Autograder export")
 
 main :: IO()
 main =
   do
-    autograderCSVData <- BL.readFile "in.csv"
+    args <- execParser opts
+    let inputPath = projectName args ++ ".csv"
+    autograderCSVData <- BL.readFile inputPath
     let (_, agParsed) = parse autograderCSVData
     let m = buildGradeMap agParsed
-    templateData <- BL.readFile "template.csv"
+    templateData <- BL.readFile (templatePath args)
     let (tempHead, tempParsed) = parse templateData
-    maybe (fail "Project not found!")
+    maybe (fail "Project not found in gradebook template!")
       (\ proj ->
          let gradeBook = buildGradeBook tempParsed m proj in
-         BL.writeFile "out.csv" (encodeByName (V.fromList ["Student", "ID", "SIS Login ID", "Section", proj]) (V.toList gradeBook)))
-      (findProjectName tempHead)
+         let s = encodeByName (V.fromList ["Student", "ID", "SIS Login ID", "Section", proj]) (V.toList gradeBook) in
+         case outputPath args of
+         StdOut       -> BL.putStr s
+         OutputFile f -> BL.writeFile f s)
+      (findProjectName (projectName args) tempHead)
