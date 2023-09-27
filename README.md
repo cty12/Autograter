@@ -2,4 +2,23 @@ Autograter [sic] generates a Canvas gradebook from [Autograder](https://eecs-aut
 
 Usage:
 
+```
+Autograter - generate Canvas gradebook from Autograder export
+
+Usage: Autograter PROJECT TEMPLATE_PATH [-t|--with-test]
+                  [-o|--output OUTPUT_PATH]
+
+  Takes an Autograder project name and path to a Canvas gradebook template. The
+  Autograder export CSV file should be named 'PROJECT.csv'. Export of mutation
+  testing, if exists as a separate file, should be named 'PROJECT_TEST.csv'
+  Outputs to 'OUTPUT_PATH' if given and stdout otherwise
+
+Available options:
+  PROJECT                  Name of the Autograder project
+  TEMPLATE_PATH            Path to the Canvas gradebook template file
+  -t,--with-test           Whether the project has mutation testing
+  -o,--output OUTPUT_PATH  Path to the output file
+  -h,--help                Show this help text
+```
+
 [![asciicast](https://asciinema.org/a/CUezqdjdE3iVJcetHsU8bcoGs.svg)](https://asciinema.org/a/CUezqdjdE3iVJcetHsU8bcoGs)
