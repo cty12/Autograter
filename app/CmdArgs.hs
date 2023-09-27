@@ -8,6 +8,7 @@ data AppOutput = StdOut | OutputFile !FilePath
 data CmdArgs = CmdArgs {
   projectName      :: !String,      {- required -}
   templatePath     :: !FilePath,    {- required -}
+  withTest         :: !Bool,
   outputPath       :: !AppOutput }
   deriving (Show)
 
@@ -19,12 +20,16 @@ parseArgs = CmdArgs
       <*> strArgument
           (metavar "TEMPLATE_PATH"
             <> help "Path to the Canvas gradebook template file")
+      <*> switch
+          (long "with-test"
+            <> short 't'
+            <> help "Whether the project has mutation testing")
       <*> option (OutputFile <$> str)
           (long "output"
-         <> short 'o'
-         <> metavar "OUTPUT_PATH"
-         <> help "Path to the output file"
-         <> value StdOut)
+            <> short 'o'
+            <> metavar "OUTPUT_PATH"
+            <> help "Path to the output file"
+            <> value StdOut)
 
 opts :: ParserInfo CmdArgs
 opts = info (parseArgs <**> helper)

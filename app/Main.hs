@@ -3,6 +3,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 
 module Main where
 
@@ -73,16 +74,19 @@ parse s =
 type GradeBook = V.Vector GradeBookEntry
 type GradeMap  = M.Map BS.ByteString Float
 
-buildGradeMap :: V.Vector Student -> GradeMap
-buildGradeMap sts = M.fromList $ map (\ st -> (uid st, grade st)) (V.toList sts)
+buildGradeMap :: V.Vector Student -> V.Vector Student -> GradeMap
+buildGradeMap sts tts =
+  M.fromList $ map (\ st -> let stId = uid st in (stId, grade st + fromMaybe 0 (M.lookup stId testMap))) (V.toList sts)
+  where
+    testMap = M.fromList $ map (\ tt -> (uid tt, grade tt)) (V.toList tts)
 
 buildGradeBook :: GradeBook -> GradeMap -> BS.ByteString -> GradeBook
 buildGradeBook (V.uncons -> Nothing) _ _ = V.empty
 buildGradeBook (V.uncons -> Just (r, rs)) m proj =
   let rest = buildGradeBook rs m proj in
-  maybe rest (\s -> V.cons (buildEntry r s proj) rest) (username r)
+    maybe rest (\s -> V.cons (buildEntry r s proj) rest) (username r)
   where
-  buildEntry rcd s pr = rcd { pts = fromMaybe 0 (M.lookup s m), project = pr }
+    buildEntry rcd s pr = rcd { pts = fromMaybe 0 (M.lookup s m), project = pr }
 
 findProjectName :: String -> Header -> Maybe BS.ByteString
 findProjectName proj = V.find (BS.isPrefixOf $ fromString proj)
@@ -92,16 +96,19 @@ main =
   do
     args <- execParser opts
     let inputPath = projectName args ++ ".csv"
-    autograderCSVData <- BL.readFile inputPath
-    let (_, agParsed) = parse autograderCSVData
-    let m = buildGradeMap agParsed
-    templateData <- BL.readFile (templatePath args)
+        testPath  = projectName args ++ "_Test.csv"
+    (_, agParsed)   <- parse <$> BL.readFile inputPath
+    (_, testParsed) <- if withTest args
+      then parse <$> BL.readFile testPath
+      else return (V.empty, V.empty)
+    let m = buildGradeMap agParsed testParsed
+    templateData <- BL.readFile (args.templatePath)
     let (tempHead, tempParsed) = parse templateData
     maybe (fail "Project not found in gradebook template!")
       (\ proj ->
          let gradeBook = buildGradeBook tempParsed m proj in
          let s = encodeByName (V.fromList ["Student", "ID", "SIS Login ID", "Section", proj]) (V.toList gradeBook) in
-         case outputPath args of
+         case args.outputPath of
          StdOut       -> BL.putStr s
          OutputFile f -> BL.writeFile f s)
       (findProjectName (projectName args) tempHead)
