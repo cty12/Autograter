@@ -1,4 +1,5 @@
-Autograter [sic] generates a Canvas gradebook from [Autograder](https://eecs-autograder.github.io/autograder.io/) export.
+Autograter (if you'll forgive the pun) generates a Canvas gradebook from some
+[Autograder](https://eecs-autograder.github.io/autograder.io/) export.
 
 Usage:
 
@@ -20,5 +21,3 @@ Available options:
   -o,--output OUTPUT_PATH  Path to the output file
   -h,--help                Show this help text
 ```
-
-[![asciicast](https://asciinema.org/a/CUezqdjdE3iVJcetHsU8bcoGs.svg)](https://asciinema.org/a/CUezqdjdE3iVJcetHsU8bcoGs)
