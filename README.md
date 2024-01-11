@@ -1,6 +1,8 @@
 Autograter (if you'll forgive the pun) generates a Canvas gradebook from some
 [Autograder](https://eecs-autograder.github.io/autograder.io/) export.
 
+Build: `cabal build`
+
 Usage:
 
 ```
