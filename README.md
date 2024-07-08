@@ -1,14 +1,11 @@
+## Autograter - generates Canvas gradebook import from Autograder export
+
 Autograter (if you'll forgive the pun) generates a Canvas gradebook from some
 [Autograder](https://eecs-autograder.github.io/autograder.io/) export.
 
-Build: run `cabal build` in project root
+**Build:** run `cabal build` in project root
 
-Usage:
-
-
-*Autograter - generates Canvas gradebook import from Autograder export*
-
-Usage:
+**Usage:**
 ```
 Autograter PROJECT TEMPLATE_PATH [-t|--with-test]
                   [-o|--output OUTPUT_PATH]
@@ -22,7 +19,7 @@ mutation testing part should live in a separate Autograder project and its
 export should be named `PROJECT_TEST.csv`. The program generates a file if
 `OUTPUT_PATH` is supplied; otherwise, the program prints to standard output.
 
-Available options:
+**Available options:**
 ```
   PROJECT                  Name of your Autograder project
   TEMPLATE_PATH            Path to the Canvas gradebook template file
